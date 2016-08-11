@@ -27,7 +27,7 @@ RunNetflix.tmp: .pylintrc RunNetflix.in RunNetflix.out RunNetflix.py
 RunProbe: .pylintrc RunNetflix.py
 	-$(PYLINT) Netflix.py
 	-$(PYLINT) RunNetflix.py
-	python3 -m cProfile RunNetflix.py < probe.txt > RunNetflix.tmp
+	python3 RunNetflix.py < probe.txt > probe.out
 
 TestNetflix.out: .pylintrc TestNetflix.py
 	-$(PYLINT) Netflix.py
@@ -62,6 +62,7 @@ clean:
 	rm -f  Netflix.html
 	rm -f  RunNetflix.tmp
 	rm -f  TestNetflix.out
+	rm -f  probe.out
 	rm -rf __pycache__
 
 config:
