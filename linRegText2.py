@@ -21,7 +21,7 @@ def printLinRegFormat():
 					# Difference between predicted and actual rating
 					related_mov_error[ind] = netflix_predict(mov, cust_id) - ANSWERS_CACHE[mov][cust_id]
 			if related_mov_error != [0,0,0]:
-				print(str(rat) + ":" + str(netflix_predict(mov_id, cust_id)) + "," + str(related_mov_error[0]) + "," + str(related_mov_error[1]) + "," + str(related_mov_error[2]))
+				print(str(netflix_predict(mov_id, cust_id) - rat) + ":" + str(related_mov_error[0]) + "," + str(related_mov_error[1]) + "," + str(related_mov_error[2]))
 
 def createDictTopMovies():
 	# Miss Congeniality, Independence Day, Pretty Woman, The Patriot
