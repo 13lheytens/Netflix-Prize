@@ -26,6 +26,9 @@ with open("caches/tAnswers.p", "rb") as f:
     CACHE_ANSWERS = pickle.load(f)
     f.close()
 
+# Results from lin Reg 2
+CACHE_RELATED_MOVIES = {5317 : {15124 : -0.04099798, 6287 : -0.09074658, 14313 : -0.30758110}, 15124 : {5317: -0.04099798}, 6287 : {5317: -0.09074658}, 14313 : {5317 : -0.30758110}}
+
 # ------------
 # netflix_read
 # ------------
@@ -88,6 +91,7 @@ def netflix_solve(reader, writer):
             movie_id = u_id
         elif movie_flag == 0:
             res = netflix_predict(movie_id, u_id)
+            res = related_movie_offset(res, movie_id, u_id)
             predict_rating_list.append(res)
             actual_rating_list.append(CACHE_ANSWERS[movie_id][u_id])
             netflix_print(writer, res)
@@ -124,6 +128,25 @@ def netflix_predict(movie_id, customer_id):
         res = 1.0
 
     return res
+
+# ---------------
+# related_movie_offset
+# ---------------
+
+def related_movie_offset(pred, movie_id, customer_id):
+    """
+    calculates related movie ratings offset
+    return a float, representing offset
+    """
+    offset = 0.0
+    if movie_id in CACHE_RELATED_MOVIES:
+        for other_mov, weight in CACHE_RELATED_MOVIES[movie_id].items():
+            if customer_id in CACHE_ANSWERS[other_mov]:
+                offset += weight * (netflix_predict(other_mov, customer_id) - CACHE_ANSWERS[other_mov][customer_id])
+    if offset == 0.0:
+        return pred
+    # equation from lin reg results 2
+    return -0.16439531 + 1.07691904 * pred + offset
 
 # ------------
 # netflix_rmse
