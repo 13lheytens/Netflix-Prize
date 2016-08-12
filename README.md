@@ -73,7 +73,7 @@ Our class used the training data to create caches (Python dictionaries) in the f
 
 *RunNetflix.out* 			- prediction results for RunNetflix.in, RMSE printed at bottom
 
-*RunNetflix.py* 			- uses Netflix.py to solve for predictions, stOut is Predicted Output
+*RunNetflix.py* 			- uses Netflix.py to solve for predictions
 
 *TestNetflix.out*	 		- testing results
 
@@ -87,7 +87,7 @@ Our class used the training data to create caches (Python dictionaries) in the f
 
 *makefile*				- used for automated building
 
-*probe.out**				- prediction results for probe.txt data, RMSE printed at bottom
+*probe.out*				- prediction results for probe.txt data, RMSE printed at bottom
 
 *probe.txt*				- subset of training data
 
@@ -169,6 +169,9 @@ I then ran a linear regression with the following form:
 
 The actual benefit to this approach was minimal, but given more time and resources, more combinations can be discovered and utilized.
 
+##FUTURE APPROACH:
 
+1. Add more (or all) movie pair weights
+2. Incorporate User pair weights (similar to movie pair weights)
 
 
