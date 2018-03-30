@@ -163,6 +163,10 @@ def netflix_predict_with_correlations(movie_id, customer_id):
 
             # If the customer has seen the other movie, use correlation to enhance prediction
             if customer_id in MOVIE_RATINGS_CACHE[other_movie]:
+
+                # If basic prediction approach was too high (or low) on other movies watched, 
+                # then based on how similar the movies are to one another, the basic approach 
+                # may be likely to predict high (or low) on this movie.
                 prediction_error_other_movie = netflix_predict_basic(other_movie, customer_id) - MOVIE_RATINGS_CACHE[other_movie][customer_id]
                 res += (corr * prediction_error_other_movie)
 
