@@ -1,0 +1,8 @@
+Netflix.html
+__pycache__
+.pylintrc
+data
+probe.out
+RunNetflix.tmp
+TestNetflix.out
+!data/README

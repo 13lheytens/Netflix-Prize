@@ -2,32 +2,34 @@
 """NETFLIX ASSIGNMENT
 """
 import pickle
+import random
 
 # --------
 # GLOBALS
 # --------
 
-# For if running without probe data
-PROBETEXT = "/u/downing/cs/cs373/netflix/probe.txt"
-
-with open("caches/movYear.p", "rb") as f:
-    CACHE_MOVIE_YEAR = pickle.load(f)
+with open("caches/avgCustomerRatings.p", "rb") as f:
+    AVG_CUST_CACHE = pickle.load(f)
     f.close()
-with open("caches/tAvgCust.p", "rb") as f:
-    CACHE_AVG_CUSTOMER_RATING = pickle.load(f)
+with open("caches/avgMovieRatings.p", "rb") as f:
+    AVG_MOVIE_CACHE = pickle.load(f)
     f.close()
-with open("caches/tAvgMovie.p", "rb") as f:
-    CACHE_AVG_MOVIE_RATING = pickle.load(f)
+with open("caches/ratingsMovies.p", "rb") as f:
+    MOVIE_RATINGS_CACHE = pickle.load(f)
     f.close()
-with open("caches/tYearsSinceRelease.p", "rb") as f:
-    CACHE_YEARS_SINCE_RELEASE = pickle.load(f)
-    f.close()
-with open("caches/tAnswers.p", "rb") as f:
-    CACHE_ANSWERS = pickle.load(f)
+with open("caches/moviePredictionErrorCorrelations.p", "rb") as f:
+    MOVIE_PREDICTION_ERROR_CORRELATIONS_CACHE = pickle.load(f)
     f.close()
 
-# Results from lin Reg 2
-CACHE_RELATED_MOVIES = {5317 : {15124 : 0.08746013, 6287 : 0.10691519, 14313 : 0.09321318}, 15124 : {5317: 0.08746013}, 6287 : {5317: 0.10691519}, 14313 : {5317 : 0.09321318}}
+# I didn't end up using these in the prediction algorithm,
+# But for future approaches these could be useful
+# with open("caches/yearsSinceRelease.p", "rb") as f:
+#     CACHE_YEARS_SINCE_RELEASE = pickle.load(f)
+#     f.close()
+# with open("caches/movieYears.p", "rb") as f:
+#     MOVIE_YEAR_CACHE = pickle.load(f)
+#     f.close()
+
 
 # ------------
 # netflix_read
@@ -83,42 +85,56 @@ def netflix_solve(reader, writer):
     movie_id = -1
     actual_rating_list = []
     predict_rating_list = []
-    assert len(CACHE_ANSWERS.keys()) > 0
+    assert len(MOVIE_RATINGS_CACHE.keys()) > 0
     for line in reader:
         u_id, movie_flag = netflix_read(line)
         if movie_flag == 1:
             netflix_print(writer, u_id)
             movie_id = u_id
-        elif movie_flag == 0:
-            res = netflix_predict(movie_id, u_id) + related_movie_offset(movie_id, u_id)
-            predict_rating_list.append(res)
-            actual_rating_list.append(CACHE_ANSWERS[movie_id][u_id])
-            netflix_print(writer, res)
         else:
-            assert False
+            # res = netflix_predict_random(movie_id, u_id)
+            # res = netflix_predict_basic(movie_id, u_id)
+            res = netflix_predict_with_correlations(movie_id, u_id)
+            predict_rating_list.append(res)
+            actual_rating_list.append(MOVIE_RATINGS_CACHE[movie_id][u_id])
+            netflix_print(writer, res)
 
     rmse_res = netflix_rmse(actual_rating_list, predict_rating_list)
     netflix_print(writer, "RMSE: " + str(rmse_res))
 
-# ---------------
-# netflix_predict
-# ---------------
+# ----------------------
+# netflix_predict_random
+# ----------------------
 
-def netflix_predict(movie_id, customer_id):
+
+def netflix_predict_random(movie_id, customer_id):
     """
     movie_id     represents the movie to predict
     customer_id  represents the customer making prediction
     return a float, representing the customer's predicted rating for movie
     """
 
-    avg_mov_value = CACHE_AVG_MOVIE_RATING[movie_id]
-    avg_cust_value = CACHE_AVG_CUSTOMER_RATING[customer_id]
-    years_after_release = CACHE_YEARS_SINCE_RELEASE[movie_id][customer_id]
+    # random.random() returns a float [0.0, 1.0)
+    res = 1.0 + random.random() * 4
 
-    # Equation from results gradient-descent/linRegResults.txt
-    res = 3.78699752 + (avg_mov_value - 3.72) * 0.91299576 \
-    + (avg_cust_value - 3.72) * 0.90834816 \
-    + years_after_release * 0.00196377
+    return res
+
+# ---------------------
+# netflix_predict_basic
+# ---------------------
+
+
+def netflix_predict_basic(movie_id, customer_id):
+    """
+    movie_id     represents the movie to predict
+    customer_id  represents the customer making prediction
+    return a float, representing the customer's predicted rating for movie
+    """
+
+    avg_mov_value = AVG_MOVIE_CACHE[movie_id]
+    avg_cust_value = AVG_CUST_CACHE[customer_id]
+
+    res = 3.6736284920068587 + (avg_mov_value - 3.6736284920068587) + (avg_cust_value - 3.6736284920068587)
 
     # Actual ratings cannot be greater than 5 or less than 1
     if res > 5.0:
@@ -128,25 +144,40 @@ def netflix_predict(movie_id, customer_id):
 
     return res
 
-# ---------------
-# related_movie_offset
-# ---------------
+# ---------------------------------
+# netflix_predict_with_correlations
+# ---------------------------------
 
-def related_movie_offset(movie_id, customer_id):
+
+def netflix_predict_with_correlations(movie_id, customer_id):
     """
-    calculates related movie ratings offset
-    return a float, representing offset
+    movie_id     represents the movie to predict
+    customer_id  represents the customer making prediction
+    return a float, representing the customer's predicted rating for movie
     """
-    offset = 0.0
-    if movie_id in CACHE_RELATED_MOVIES:
-        for other_mov, weight in CACHE_RELATED_MOVIES[movie_id].items():
-            if customer_id in CACHE_ANSWERS[other_mov]:
-                offset += weight * (netflix_predict(other_mov, customer_id) - CACHE_ANSWERS[other_mov][customer_id])
-    return -1 * offset
+
+    res = netflix_predict_basic(movie_id, customer_id)
+
+    if movie_id in MOVIE_PREDICTION_ERROR_CORRELATIONS_CACHE:
+        for other_movie, corr in MOVIE_PREDICTION_ERROR_CORRELATIONS_CACHE[movie_id].items():
+
+            # If the customer has seen the other movie, use correlation to enhance prediction
+            if customer_id in MOVIE_RATINGS_CACHE[other_movie]:
+                prediction_error_other_movie = netflix_predict_basic(other_movie, customer_id) - MOVIE_RATINGS_CACHE[other_movie][customer_id]
+                res += (corr * prediction_error_other_movie)
+
+    # Actual ratings cannot be greater than 5 or less than 1
+    if res > 5.0:
+        res = 5.0
+    elif res < 1.0:
+        res = 1.0
+
+    return res
 
 # ------------
 # netflix_rmse
 # ------------
+
 
 def netflix_rmse(answer, pred):
     """

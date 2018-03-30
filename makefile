@@ -5,12 +5,10 @@ FILES :=                              \
     RunNetflix.out                    \
     RunNetflix.py                     \
     TestNetflix.out                   \
-    TestNetflix.py                    \
-    linRegText.py                     \
-    sampleTrainingFile_Movie_2043.txt 
+    TestNetflix.py
 
 COVERAGE := coverage-3.5
-PYLINT   := pylint3
+PYLINT   := pylint
 
 .pylintrc:
 	$(PYLINT) --disable=bad-whitespace,missing-docstring,pointless-string-statement,too-many-public-methods,global-statement  --reports=n --generate-rcfile > $@
@@ -72,9 +70,6 @@ format:
 	autopep8 -i Netflix.py
 	autopep8 -i RunNetflix.py
 	autopep8 -i TestNetflix.py
-
-linRegText:
-	./linRegText.py > linRegText.txt
 
 status:
 	make clean

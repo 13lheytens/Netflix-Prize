@@ -10,7 +10,7 @@ from io import StringIO
 from unittest import main, TestCase
 
 from Netflix import netflix_read, netflix_print, \
-    netflix_predict, netflix_rmse, netflix_solve
+    netflix_predict_with_correlations, netflix_rmse, netflix_solve
 
 # -----------
 # TestNetflix
@@ -83,7 +83,7 @@ class TestNetflix(TestCase):
         tests opening movYear cache
         tests movYear cache vals
         """
-        with open("caches/movYear.p", "rb") as cache:
+        with open("caches/movieYears.p", "rb") as cache:
             mov_year_cache = pickle.load(cache)
             cache.close()
         self.assertEqual(mov_year_cache[94], 2000)
@@ -95,7 +95,7 @@ class TestNetflix(TestCase):
         tests opening tAnswers cache
         tests tAnswers cache vals
         """
-        with open("caches/tAnswers.p", "rb") as cache:
+        with open("caches/ratingsMovies.p", "rb") as cache:
             answers_cache = pickle.load(cache)
             cache.close()
         self.assertEqual(answers_cache[2043][814483], 4)
@@ -107,7 +107,7 @@ class TestNetflix(TestCase):
         tests opening tAvgCust cache
         tests tAvgCust cache vals
         """
-        with open("caches/tAvgCust.p", "rb") as cache:
+        with open("caches/avgCustomerRatings.p", "rb") as cache:
             avg_cust_cache = pickle.load(cache)
             cache.close()
         self.assertEqual(avg_cust_cache[814483], 3.6666666666666665)
@@ -119,24 +119,12 @@ class TestNetflix(TestCase):
         tests opening tAvgMovie cache
         tests tAvgMovie cache vals
         """
-        with open("caches/tAvgMovie.p", "rb") as cache:
+        with open("caches/avgMovieRatings.p", "rb") as cache:
             avg_movie_cache = pickle.load(cache)
             cache.close()
         self.assertEqual(avg_movie_cache[2043], 3.7776648456358783)
         self.assertEqual(avg_movie_cache[10], 3.180722891566265)
         self.assertEqual(avg_movie_cache[10017], 2.982142857142857)
-
-    def test_cache_5(self):
-        """
-        tests opening tYearsSinceRelease cache
-        tests tYearsSinceRelease cache vals
-        """
-        with open("caches/tYearsSinceRelease.p", "rb") as cache:
-            years_since_release_cache = pickle.load(cache)
-            cache.close()
-        self.assertEqual(years_since_release_cache[2043][716091], 50)
-        self.assertEqual(years_since_release_cache[1000][2326571], 2)
-        self.assertEqual(years_since_release_cache[10001][262828], 11)
 
     #-----
     # rmse
@@ -148,7 +136,7 @@ class TestNetflix(TestCase):
         writer = StringIO()
         netflix_solve(inp, writer)
         self.assertEqual(
-            writer.getvalue(), "2043:\n3.7\n4.6\n4.0\nRMSE: 2.1283858730975753\n")
+            writer.getvalue(), "2043:\n3.6\n4.6\n3.9\nRMSE: 2.087128003334406\n")
 
     def test_solve_2(self):
         """ test solves input 2"""
@@ -156,7 +144,7 @@ class TestNetflix(TestCase):
         writer = StringIO()
         netflix_solve(inp, writer)
         self.assertEqual(
-            writer.getvalue(), "1:\n3.7\n2043:\n4.0\nRMSE: 0.18432622758011358\n")
+            writer.getvalue(), "1:\n3.7\n2043:\n3.9\nRMSE: 0.2180552033726668\n")
 
     def test_solve_3(self):
         """ test solves input 3"""
@@ -164,14 +152,7 @@ class TestNetflix(TestCase):
         writer = StringIO()
         netflix_solve(inp, writer)
         self.assertEqual(
-            writer.getvalue(), "2043:\n4.6\n1:\n3.7\nRMSE: 2.5588590159754325\n")
-
-    def test_solve_4(self):
-        """ test solves invalid input 4"""
-        inp = StringIO("2043:\n2312054\n1:\n\n")
-        writer = StringIO()
-        with self.assertRaises(AssertionError):
-            netflix_solve(inp, writer)
+            writer.getvalue(), "2043:\n4.6\n1:\n3.7\nRMSE: 2.5264965005457753\n")
 
     # -------
     # predict
@@ -181,22 +162,22 @@ class TestNetflix(TestCase):
         """ test predicts movie and customer"""
         movie_id = 1
         customer_id = 30878
-        res = netflix_predict(movie_id, customer_id)
-        self.assertEqual(res, 3.7394321383123703)
+        res = netflix_predict_with_correlations(movie_id, customer_id)
+        self.assertEqual(res, 3.709531820492699)
 
     def test_predict_2(self):
         """ test predicts movie and customer"""
         movie_id = 10
         customer_id = 1952305
-        res = netflix_predict(movie_id, customer_id)
-        self.assertEqual(res, 3.020308046060214)
+        res = netflix_predict_with_correlations(movie_id, customer_id)
+        self.assertEqual(res, 2.9164350589000656)
 
     def test_predict_3(self):
         """ test predicts movie and customer"""
         movie_id = 1002
         customer_id = 2174660
-        res = netflix_predict(movie_id, customer_id)
-        self.assertEqual(res, 3.2379678434646615)
+        res = netflix_predict_with_correlations(movie_id, customer_id)
+        self.assertEqual(res, 3.1546923099981536)
 
     # -----
     # rmse
