@@ -1,7 +1,7 @@
 Netflix.html
 __pycache__
 .pylintrc
-data
+data/*
 probe.out
 RunNetflix.tmp
 TestNetflix.out
